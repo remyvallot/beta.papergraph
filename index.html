@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papergraph - Map your research. Connect ideas.</title>
+    
+    <!-- Base path helper must load first -->
+    <script type="module">
+        import { navigateTo } from './js/utils/base-path.js';
+        window.navigateTo = navigateTo;
+    </script>
+    
+    <link href="https://api.fontshare.com/v2/css?f[]=chillax@400,700&display=swap" rel="stylesheet">
+    
+    <!-- Modular CSS - Base -->
+    <link rel="stylesheet" href="css/base/reset.css">
+    <link rel="stylesheet" href="css/base/typography.css">
+    
+    <!-- Modular CSS - Components -->
+    <link rel="stylesheet" href="css/components/buttons.css">
+    <link rel="stylesheet" href="css/components/modals.css">
+    <link rel="stylesheet" href="css/components/footer.css">
+    <link rel="stylesheet" href="css/components/onboarding.css">
+    
+    <!-- Cursors - MUST BE LAST to override everything -->
+    <link rel="stylesheet" href="css/base/cursors.css">
+    
+    <link rel="icon" type="image/svg+xml" href="assets/logo-papergraph.svg">
+</head>
+<body>
+    <!-- Page Container -->
+    <div class="pg-page">
+        
+        <!-- Header -->
+        <header class="pg-header">
+            <a href="index.html" class="pg-header-logo">
+                <img src="assets/logo-papergraph.svg" alt="Papergraph">
+                <span class="logo-text">papergraph</span>
+            </a>
+            <div class="pg-header-actions">
+                <button class="btn-secondary" onclick="openAuthModal()">Sign in</button>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="pg-hero">
+            <h1>Map your research.<br>Connect ideas.</h1>
+            <p>Organize and visualize academic literature through an elegant visual graph interface.</p>
+            <div class="pg-hero-actions">
+                <button class="btn-primary" id="getStartedBtn">Get started</button>
+            </div>
+        </section>
+
+        <!-- Feature Showcase -->
+        <section class="pg-features">
+            
+            <!-- Feature 1: Add Nodes -->
+            <div class="pg-feature-section">
+                <div class="pg-feature-content">
+                    <h2>Build your research graph</h2>
+                    <p>Add articles with a single click. Import from DOI, arXiv, BibTeX, or add manually. Each article becomes a node in your visual knowledge network.</p>
+                    <div class="pg-feature-tags">
+                        <span class="pg-tag">DOI Import</span>
+                        <span class="pg-tag">arXiv</span>
+                        <span class="pg-tag">BibTeX</span>
+                        <span class="pg-tag">PDF Metadata</span>
+                    </div>
+                </div>
+                <div class="pg-feature-visual">
+                    <div class="pg-demo-container">
+                        <img src="assets/add-node.png" alt="Add nodes demo" class="pg-demo-gif">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 2: Connect Ideas -->
+            <div class="pg-feature-section pg-feature-reverse">
+                <div class="pg-feature-content">
+                    <h2>Connect related papers</h2>
+                    <p>Draw connections between articles to visualize relationships. Label each connection to explain how papers relate—citations, similar methods, contrasting views.</p>
+                    <div class="pg-feature-tags">
+                        <span class="pg-tag">Labeled Edges</span>
+                        <span class="pg-tag">Visual Relations</span>
+                        <span class="pg-tag">Semantic Links</span>
+                    </div>
+                </div>
+                <div class="pg-feature-visual">
+                    <div class="pg-demo-container">
+                        <img src="assets/demo-connect-ideas.gif" alt="Connect ideas demo" class="pg-demo-gif">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 3: Organize with Tags -->
+            <div class="pg-feature-section">
+                <div class="pg-feature-content">
+                    <h2>Organize with tags and zones</h2>
+                    <p>Color-code articles by topic or theme. Create spatial zones to group related papers. Filter your graph by tags to focus on specific research areas.</p>
+                    <div class="pg-feature-tags">
+                        <span class="pg-tag">Color Coding</span>
+                        <span class="pg-tag">Tag Zones</span>
+                        <span class="pg-tag">Smart Filters</span>
+                    </div>
+                </div>
+                <div class="pg-feature-visual">
+                    <div class="pg-demo-container">
+                        <img src="assets/demo-organize-tags.gif" alt="Organize with tags demo" class="pg-demo-gif">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 4: Multiple Views -->
+            <div class="pg-feature-section pg-feature-reverse">
+                <div class="pg-feature-content">
+                    <h2>Switch between views</h2>
+                    <p>Toggle between graph view for visual exploration and list view for detailed reference management. Export to PDF, PNG, BibTeX, or JSON for backups.</p>
+                    <div class="pg-feature-tags">
+                        <span class="pg-tag">Graph View</span>
+                        <span class="pg-tag">List View</span>
+                        <span class="pg-tag">PDF Export</span>
+                        <span class="pg-tag">BibTeX Export</span>
+                    </div>
+                </div>
+                <div class="pg-feature-visual">
+                    <div class="pg-demo-container">
+                        <img src="assets/demo-switch-views.gif" alt="Switch views demo" class="pg-demo-gif">
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Footer -->
+        <div data-include="footer"></div>
+
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-modal-content">
+            <button class="auth-modal-close" onclick="closeAuthModal()">&times;</button>
+            
+            <div class="auth-modal-header">
+                <h2 id="authModalTitle">Welcome to Papergraph</h2>
+                <p id="authModalSubtitle">Sign in to sync your projects across devices</p>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div id="authMessage"></div>
+
+            <!-- OAuth Providers -->
+            <div class="auth-providers">
+                <button class="auth-provider-btn" onclick="signInWithGitHub()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    Continue with GitHub
+                </button>
+                
+                <button class="auth-provider-btn" onclick="signInWithGoogle()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Continue with Google
+                </button>
+            </div>
+
+            <div class="auth-divider">
+                <span>or continue with email</span>
+            </div>
+
+            <!-- Email Form -->
+            <form id="authForm" class="auth-form" onsubmit="handleAuthSubmit(event)">
+                <input 
+                    type="text" 
+                    id="authFullName" 
+                    placeholder="Full Name"
+                    style="display: none;"
+                />
+                <input 
+                    type="text" 
+                    id="authUsername" 
+                    placeholder="Username"
+                    minlength="3"
+                    maxlength="20"
+                    pattern="[a-zA-Z0-9_]+"
+                    title="Username must be 3-20 characters (letters, numbers, underscore only)"
+                    style="display: none;"
+                />
+                <input 
+                    type="email" 
+                    id="authEmail" 
+                    placeholder="Email address" 
+                    required
+                />
+                <input 
+                    type="password" 
+                    id="authPassword" 
+                    placeholder="Password" 
+                    required
+                    minlength="6"
+                />
+                <button type="submit" class="btn-primary" id="authSubmitBtn">
+                    Sign in
+                </button>
+            </form>
+
+            <div class="auth-form-toggle">
+                <span id="authToggleText">Don't have an account?</span>
+                <button type="button" onclick="toggleAuthMode()">Sign up</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Auth Logic -->
+    <script type="module">
+        import { supabase, config } from './js/auth/config.js';
+
+        let isSignUp = false;
+
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Check for redirect parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            const token = urlParams.get('token');
+            
+            // Handle hash fragment (from email confirmation)
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const hashType = hashParams.get('type');
+            
+            // If we have an access token in hash, this is a redirect from email confirmation
+            if (accessToken) {
+                // Supabase SDK will handle the session automatically
+                // Wait a moment for session to be established
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // User is logged in
+                if (redirect === 'share' && token) {
+                    // Redirect to shared project
+                    window.navigateTo(`editor.html?share=${token}`);
+                } else {
+                    // Normal redirect to projects
+                    window.navigateTo('projects.html');
+                }
+                return;
+            }
+            
+            // User not logged in
+            if (redirect === 'share' && token) {
+                // Show auth modal with message about shared project
+                openAuthModal();
+                showAuthMessage('Please sign in to view this shared project', false);
+            }
+
+            // Attach event listeners after DOM is ready
+            const getStartedBtn = document.getElementById('getStartedBtn');
+            if (getStartedBtn) {
+                getStartedBtn.addEventListener('click', openAuthModal);
+            }
+        });
+
+        // Modal functions
+        function openAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            clearAuthMessage();
+        }
+
+        // Make functions available globally for inline handlers
+        window.openAuthModal = openAuthModal;
+        window.closeAuthModal = closeAuthModal;
+
+        // Toggle between sign in and sign up
+        function toggleAuthMode() {
+            isSignUp = !isSignUp;
+            const title = document.getElementById('authModalTitle');
+            const subtitle = document.getElementById('authModalSubtitle');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const toggleText = document.getElementById('authToggleText');
+            const fullNameField = document.getElementById('authFullName');
+            const usernameField = document.getElementById('authUsername');
+            
+            if (isSignUp) {
+                title.textContent = 'Create your account';
+                subtitle.textContent = 'Join Papergraph to sync your research';
+                submitBtn.textContent = 'Sign up';
+                toggleText.textContent = 'Already have an account?';
+                fullNameField.style.display = 'block';
+                fullNameField.required = true;
+                usernameField.style.display = 'block';
+                usernameField.required = true;
+            } else {
+                title.textContent = 'Welcome to Papergraph';
+                subtitle.textContent = 'Sign in to sync your projects across devices';
+                submitBtn.textContent = 'Sign in';
+                toggleText.textContent = "Don't have an account?";
+                fullNameField.style.display = 'none';
+                fullNameField.required = false;
+                usernameField.style.display = 'none';
+                usernameField.required = false;
+            }
+            clearAuthMessage();
+        }
+
+        window.toggleAuthMode = toggleAuthMode;
+
+        // Show message
+        function showAuthMessage(message, isError = false) {
+            const messageDiv = document.getElementById('authMessage');
+            messageDiv.className = isError ? 'auth-error' : 'auth-success';
+            messageDiv.textContent = message;
+        }
+
+        function clearAuthMessage() {
+            document.getElementById('authMessage').textContent = '';
+            document.getElementById('authMessage').className = '';
+        }
+
+        // Email/Password Auth
+        async function handleAuthSubmit(event) {
+            event.preventDefault();
+            clearAuthMessage();
+
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+
+            try {
+                if (isSignUp) {
+                    const fullName = document.getElementById('authFullName').value;
+                    const username = document.getElementById('authUsername').value;
+                    
+                    // Check if username is already taken
+                    const { data: existingUsers, error: checkError } = await supabase
+                        .from('profiles')
+                        .select('username')
+                        .eq('username', username)
+                        .maybeSingle();
+                    
+                    if (existingUsers) {
+                        throw new Error('Username already taken. Please choose another.');
+                    }
+
+                    const { data, error } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: {
+                                full_name: fullName,
+                                username: username
+                            }
+                        }
+                    });
+
+                    if (error) throw error;
+
+                    showAuthMessage('Check your email to confirm your account!', false);
+                    
+                    // Clear form
+                    document.getElementById('authForm').reset();
+                } else {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    });
+
+                    if (error) throw error;
+
+                    // Check for pending share token redirect
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect');
+                    const token = urlParams.get('token');
+                    
+                    if (redirect === 'share' && token) {
+                        // Redirect to shared project
+                        window.navigateTo(`editor.html?share=${token}`);
+                    } else {
+                        // Normal redirect to dashboard
+                        window.navigateTo('projects.html');
+                    }
+                }
+            } catch (error) {
+                showAuthMessage(error.message, true);
+            }
+        }
+
+        // Generate unique username
+        async function generateUniqueUsername(baseUsername) {
+            let username = baseUsername.toLowerCase().replace(/[^a-z0-9_]/g, '');
+            if (username.length < 3) username = 'user_' + username;
+            if (username.length > 20) username = username.substring(0, 20);
+            
+            let finalUsername = username;
+            let suffix = 1;
+            
+            while (true) {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('username')
+                    .eq('username', finalUsername)
+                    .maybeSingle();
+                
+                if (!data) break; // Username is available
+                
+                finalUsername = username + suffix;
+                suffix++;
+            }
+            
+            return finalUsername;
+        }
+
+        // GitHub OAuth
+        async function signInWithGitHub() {
+            try {
+                // Check for pending share redirect
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirect = urlParams.get('redirect');
+                const token = urlParams.get('token');
+                
+                let redirectTo = window.location.origin + config.basePath + 'projects.html';
+                if (redirect === 'share' && token) {
+                    redirectTo = window.location.origin + config.basePath + `editor.html?share=${token}`;
+                }
+                
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'github',
+                    options: {
+                        redirectTo: redirectTo,
+                        scopes: 'user:email'
+                    }
+                });
+
+                if (error) throw error;
+            } catch (error) {
+                showAuthMessage(error.message, true);
+            }
+        }
+
+        // Google OAuth
+        async function signInWithGoogle() {
+            try {
+                // Check for pending share redirect
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirect = urlParams.get('redirect');
+                const token = urlParams.get('token');
+                
+                let redirectTo = window.location.origin + config.basePath + 'projects.html';
+                if (redirect === 'share' && token) {
+                    redirectTo = window.location.origin + config.basePath + `editor.html?share=${token}`;
+                }
+                
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: redirectTo
+                    }
+                });
+
+                if (error) throw error;
+            } catch (error) {
+                showAuthMessage(error.message, true);
+            }
+        }
+
+        // Make functions globally available
+        window.handleAuthSubmit = handleAuthSubmit;
+        window.signInWithGitHub = signInWithGitHub;
+        window.signInWithGoogle = signInWithGoogle;
+
+        // Close modal on outside click
+        document.getElementById('authModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeAuthModal();
+            }
+        });
+    </script>
+    
+    <!-- Load Footer -->
+    <script src="js/utils/load-footer.js"></script>
+</body>
+</html>

@@ -1052,6 +1052,70 @@
     margin-top: auto;
 }
 
+/* Shared Projects Section Styling */
+.pg-projects-section {
+    margin-top: 40px;
+    margin-bottom: 24px;
+}
+
+.pg-projects-section:first-child {
+    margin-top: 0;
+}
+
+.pg-section-title {
+    font-family: 'Chillax', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 20px 0;
+    letter-spacing: -0.01em;
+}
+
+/* Role Badge - displayed on project preview */
+.pg-role-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.pg-role-viewer {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.pg-role-editor {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.pg-role-owner {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+/* Owner Info - displayed in project meta section */
+.pg-project-owner {
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pg-project-owner::before {
+    content: '👤';
+    font-size: 0.75rem;
+}
+
 .pg-project-actions {
     display: flex;
     gap: 8px;
@@ -1430,4 +1494,215 @@
     font-size: 1.35rem;
     color: #2c3e50;
     letter-spacing: -0.02em;
+}
+
+/* ===== NOTIFICATIONS PANEL ===== */
+
+/* Notification Badge (on menu item) */
+.notification-badge {
+    margin-left: auto;
+    background: #dc3545;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* Notifications Panel Container */
+.notifications-panel {
+    position: fixed;
+    top: 32px;
+    right: 32px;
+    width: 400px;
+    max-height: calc(100vh - 80px);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1150;
+}
+
+.notifications-panel.active {
+    display: flex;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Notifications Header */
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.notifications-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.notifications-close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    color: #666;
+}
+
+.notifications-close-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+/* Notifications Actions */
+.notifications-actions {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.notifications-action-btn {
+    background: transparent;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #4a90e2;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.notifications-action-btn:hover {
+    background: rgba(74, 144, 226, 0.05);
+    border-color: #4a90e2;
+}
+
+.notifications-action-btn svg {
+    stroke: #4a90e2;
+}
+
+/* Notifications List */
+.notifications-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+/* Notification Item */
+.notification-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: white;
+    border: 1px solid transparent;
+}
+
+.notification-item:hover {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+.notification-item.unread {
+    background: rgba(74, 144, 226, 0.05);
+    border-color: rgba(74, 144, 226, 0.15);
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notification-icon.invitation {
+    background: rgba(74, 144, 226, 0.1);
+    color: #4a90e2;
+}
+
+.notification-icon.mention {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.notification-icon.comment {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-message {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+}
+
+.notification-time {
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.notification-unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4a90e2;
+    flex-shrink: 0;
+    margin-top: 8px;
+}
+
+/* Empty State */
+.notifications-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: #999;
+}
+
+.notifications-empty p {
+    margin: 12px 0 0 0;
+    font-size: 0.9rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .notifications-panel {
+        width: calc(100vw - 32px);
+        right: 16px;
+        top: 16px;
+        max-height: calc(100vh - 32px);
+    }
 }

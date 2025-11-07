@@ -539,6 +539,68 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.collaborator-overflow {
+    background-color: #e0e0e0 !important;
+    color: #666 !important;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* ===== READ-ONLY MODE INDICATOR ===== */
+.read-only-indicator {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 152, 0, 0.95);
+    backdrop-filter: blur(10px);
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    z-index: 1200;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.read-only-indicator svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+/* Disabled button state for read-only mode */
+.main-tool-btn:disabled,
+.main-tool-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.main-tool-btn:disabled:hover,
+.main-tool-btn.disabled:hover {
+    background: transparent;
+    color: #666;
+    transform: none;
+}
+
+
 .collaborator-count {
     font-size: 0.85rem;
     color: #666;

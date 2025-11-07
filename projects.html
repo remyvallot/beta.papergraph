@@ -26,34 +26,6 @@
     <link rel="stylesheet" href="css/base/cursors.css">
     
     <link rel="icon" type="image/svg+xml" href="assets/logo-papergraph.svg">
-    
-    <style>
-        /* Shared project badge */
-        .pg-project-shared-badge {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
-            z-index: 10;
-        }
-        
-        .pg-project-preview {
-            position: relative;
-        }
-        
-        /* Shared project card styling */
-        .pg-project-card.pg-project-shared {
-            border-left: 3px solid #667eea;
-        }
-    </style>
 </head>
 <body>
     <!-- Page Container -->
@@ -244,14 +216,10 @@
         }
 
         // Render projects
-        async function renderProjects() {
+        function renderProjects() {
             const loadingState = document.getElementById('loadingState');
             const emptyState = document.getElementById('emptyState');
             const projectsGrid = document.getElementById('projectsGrid');
-            
-            // Get current user ID
-            const { data: { user } } = await supabase.auth.getUser();
-            const currentUserId = user?.id;
 
             loadingState.style.display = 'none';
 
@@ -260,30 +228,61 @@
                 projectsGrid.style.display = 'none';
             } else {
                 emptyState.style.display = 'none';
-                projectsGrid.style.display = 'grid';
+                projectsGrid.style.display = 'block';
                 
-                projectsGrid.innerHTML = projects.map(project => {
-                    const stats = getProjectStats(project);
-                    const preview = generateProjectPreview(project);
-                    const isShared = project.user_id !== currentUserId; // Check if user is not owner
-                    
-                    return `
-                    <div class="pg-project-card${isShared ? ' pg-project-shared' : ''}" onclick="openProject('${project.id}')">
-                        <div class="pg-project-preview">
-                            ${preview}
-                            ${isShared ? '<span class="pg-project-shared-badge">SHARED</span>' : ''}
-                        </div>
-                        <div class="pg-project-info">
-                            <div class="pg-project-header">
-                                <h3 class="pg-project-title" 
-                                    id="title-${project.id}"
-                                    contenteditable="${!isShared}" 
-                                    data-project-id="${project.id}"
-                                    data-original-name="${escapeHtml(project.name)}"
-                                    onclick="event.stopPropagation();"
-                                    onblur="finishEditingTitle(this, '${escapeHtml(project.name)}')"
-                                    onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();} if(event.key==='Escape'){this.textContent='${escapeHtml(project.name)}';this.blur();}"
-                                >${escapeHtml(project.name)}</h3>
+                // Separate owned and shared projects
+                const ownedProjects = projects.filter(p => p.is_owner === true);
+                const sharedProjects = projects.filter(p => p.is_owner === false);
+                
+                let html = '';
+                
+                // Owned projects section
+                if (ownedProjects.length > 0) {
+                    html += '<div class="pg-projects-section"><h2 class="pg-section-title">My Projects</h2><div class="pg-projects-grid">';
+                    html += ownedProjects.map(project => renderProjectCard(project)).join('');
+                    html += '</div></div>';
+                }
+                
+                // Shared projects section
+                if (sharedProjects.length > 0) {
+                    html += '<div class="pg-projects-section"><h2 class="pg-section-title">Shared with me</h2><div class="pg-projects-grid">';
+                    html += sharedProjects.map(project => renderProjectCard(project)).join('');
+                    html += '</div></div>';
+                }
+                
+                projectsGrid.innerHTML = html;
+            }
+        }
+        
+        // Render individual project card
+        function renderProjectCard(project) {
+            const stats = getProjectStats(project);
+            const preview = generateProjectPreview(project);
+            
+            // Role badge for shared projects
+            const roleBadge = !project.is_owner ? `<span class="pg-role-badge pg-role-${project.role || 'viewer'}">${project.role || 'viewer'}</span>` : '';
+            
+            // Owner info for shared projects
+            const ownerInfo = !project.is_owner && project.owner_email ? 
+                `<div class="pg-project-owner">Shared by ${project.owner_email.split('@')[0]}</div>` : '';
+            
+            return `
+            <div class="pg-project-card" onclick="openProject('${project.id}')">
+                <div class="pg-project-preview">
+                    ${preview}
+                    ${roleBadge}
+                </div>
+                <div class="pg-project-info">
+                    <div class="pg-project-header">
+                        <h3 class="pg-project-title" 
+                            id="title-${project.id}"
+                            contenteditable="${project.is_owner ? 'false' : 'false'}" 
+                            data-project-id="${project.id}"
+                            data-original-name="${escapeHtml(project.name)}"
+                            onclick="event.stopPropagation();"
+                            onblur="finishEditingTitle(this, '${escapeHtml(project.name)}')"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();} if(event.key==='Escape'){this.textContent='${escapeHtml(project.name)}';this.blur();}"
+                        >${escapeHtml(project.name)}</h3>
                                 <div class="pg-project-menu">
                                     <button class="pg-project-menu-btn" onclick="event.stopPropagation(); toggleProjectMenu('${project.id}')" data-menu-id="${project.id}">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -343,12 +342,12 @@
                                 </div>
                             </div>
                             <div class="pg-project-meta">
+                                ${ownerInfo}
                                 Updated ${formatDate(project.updated_at || project.created_at)}
                             </div>
                         </div>
                     </div>
-                `}).join('');
-            }
+            `;
         }
         
         // Get project statistics

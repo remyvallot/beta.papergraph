@@ -11,25 +11,29 @@
  */
 
 // ============================================================================
-// 🌐 DEPLOYMENT CONFIGURATION - CHANGE THIS FOR DIFFERENT DOMAINS
+// 🌐 DEPLOYMENT CONFIGURATION - Change this for production
 // ============================================================================
-// For GitHub Pages: 'https://remyvallot.github.io/beta.papergraph'
-// For custom domain: 'https://papergraph.net'
-// For localhost: 'http://localhost' (or leave empty for auto-detection)
+
+// Production URL - Change this single value to deploy to different domains
+const PRODUCTION_BASE_URL = 'https://remyvallot.github.io/beta.papergraph';
+
+// Automatically detect environment
+const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const BASE_URL = isDevelopment ? window.location.origin : PRODUCTION_BASE_URL;
+
 // ============================================================================
-const PRODUCTION_DOMAIN = 'https://remyvallot.github.io/beta.papergraph';
 
 // IMPORTANT: Replace these with your actual Supabase credentials
 const SUPABASE_URL = "https://lqbcatqdfsgvbwenqupq.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxYmNhdHFkZnNndmJ3ZW5xdXBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwMzIzNzcsImV4cCI6MjA3NzYwODM3N30.Ub5dYZG_N9MScPugiYlwNlKhDl_Y6L9F4YMFsXtgvp8";
 
-// Detect environment and build URLs
+// Detect GitHub Pages base path
 const isGitHubPages = window.location.hostname.includes('github.io');
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 // Extract base path: /beta.papergraph/ or /
 function getBasePath() {
-    if (isLocalhost) return '/';
+    if (isDevelopment) return '/';
+    
     if (!isGitHubPages) return '/';
     
     const path = window.location.pathname;
@@ -39,26 +43,15 @@ function getBasePath() {
 
 const basePath = getBasePath();
 
-// Build full app URL
-function getAppUrl() {
-    if (PRODUCTION_DOMAIN) {
-        return PRODUCTION_DOMAIN;
-    }
-    return window.location.origin + (basePath !== '/' ? basePath.slice(0, -1) : '');
-}
-
-export const APP_URL = getAppUrl();
-
 // Initialize Supabase client
 export const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Configuration constants
 export const config = {
-    appUrl: APP_URL,
-    redirectUrl: APP_URL + '/',
+    baseUrl: BASE_URL,
+    redirectUrl: BASE_URL,
     basePath: basePath,
-    isProduction: !isLocalhost,
-    isGitHubPages: isGitHubPages,
+    isDevelopment: isDevelopment,
     providers: {
         github: 'github',
         google: 'google'
@@ -66,10 +59,11 @@ export const config = {
 };
 
 console.log('🔧 Supabase Config:', {
-    appUrl: config.appUrl,
+    baseUrl: config.baseUrl,
     redirectUrl: config.redirectUrl,
     basePath: config.basePath,
-    isProduction: config.isProduction
+    isDevelopment: config.isDevelopment,
+    isGitHubPages: isGitHubPages
 });
 
 /**

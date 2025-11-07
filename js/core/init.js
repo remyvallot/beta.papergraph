@@ -318,8 +318,10 @@ function initializeEventListeners() {
     document.getElementById('fileInput').addEventListener('change', importProject);
     document.getElementById('bibtexFileInput').addEventListener('change', importBibtexFile);
     
-    // Toolbar actions
-    document.getElementById('addArticleBtn').addEventListener('click', () => openArticleModal());
+    // Toolbar actions (with permission guards)
+    document.getElementById('addArticleBtn').addEventListener('click', () => {
+        executeIfCanEdit(() => openArticleModal(), 'Add article');
+    });
     document.getElementById('categoryFilterBtn').addEventListener('click', toggleCategoryDropdown);
     // Function to recenter/fit the graph view
     function fitGraphView() {
@@ -488,6 +490,12 @@ function initializeEventListeners() {
             
             e.preventDefault();
             
+            // Check permissions before deleting
+            if (!canEdit()) {
+                showReadOnlyNotification();
+                return;
+            }
+            
             if (selectedNodeId !== null) {
                 if (confirm('Delete this article?')) {
                     deleteArticleById(selectedNodeId);
@@ -510,15 +518,19 @@ function initializeEventListeners() {
     // Radial menu actions
     document.querySelector('.radial-connect').addEventListener('click', () => {
         if (selectedNodeId) {
-            startConnectionMode(selectedNodeId);
-            hideRadialMenu();
+            executeIfCanEdit(() => {
+                startConnectionMode(selectedNodeId);
+                hideRadialMenu();
+            }, 'Create connection');
         }
     });
     
     document.querySelector('.radial-delete').addEventListener('click', () => {
         if (selectedNodeId) {
-            deleteArticleById(selectedNodeId);
-            hideRadialMenu();
+            executeIfCanEdit(() => {
+                deleteArticleById(selectedNodeId);
+                hideRadialMenu();
+            }, 'Delete article');
         }
     });
     
@@ -526,8 +538,12 @@ function initializeEventListeners() {
     document.getElementById('cancelConnectionMode').addEventListener('click', cancelConnectionMode);
     
     // Modal
-    document.getElementById('articleForm').addEventListener('submit', saveArticle);
-    document.getElementById('deleteArticleBtn').addEventListener('click', deleteArticle);
+    document.getElementById('articleForm').addEventListener('submit', (e) => {
+        executeIfCanEdit(() => saveArticle(e), 'Save article');
+    });
+    document.getElementById('deleteArticleBtn').addEventListener('click', () => {
+        executeIfCanEdit(() => deleteArticle(), 'Delete article');
+    });
     
     // Import functionality
     setupImportZone();

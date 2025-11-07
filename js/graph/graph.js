@@ -1258,6 +1258,110 @@ function updateGraph() {
     }
 }
 
+// ===== PERMISSIONS & READ-ONLY MODE =====
+// Enable or disable graph interaction based on user permissions
+function setGraphInteractionMode(readOnly = false) {
+    if (!network) {
+        console.warn('Cannot set interaction mode: network not initialized');
+        return;
+    }
+    
+    console.log(`🔒 Setting graph interaction mode: ${readOnly ? 'READ-ONLY' : 'EDIT'}`);
+    
+    // Update interaction options
+    network.setOptions({
+        interaction: {
+            hover: true,
+            hoverConnectedEdges: true,
+            selectConnectedEdges: true,
+            tooltipDelay: 200,
+            dragView: false,
+            multiselect: !readOnly, // Disable multi-selection in read-only
+            selectable: true,
+            dragNodes: !readOnly // KEY: Disable node dragging in read-only mode
+        },
+        manipulation: {
+            enabled: false // Always disable built-in manipulation UI
+        }
+    });
+    
+    // Visual feedback: update toolbar buttons
+    if (readOnly) {
+        // Disable edit buttons
+        const editButtons = [
+            'addArticleBtn',
+            'deleteArticleBtn',
+            'toggleGridBtn'
+        ];
+        
+        editButtons.forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+                btn.title = 'View-only access - you cannot edit this project';
+            }
+        });
+        
+        // Show read-only indicator
+        showReadOnlyIndicator();
+    } else {
+        // Enable edit buttons
+        const editButtons = [
+            'addArticleBtn',
+            'deleteArticleBtn',
+            'toggleGridBtn'
+        ];
+        
+        editButtons.forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('disabled');
+                btn.title = '';
+            }
+        });
+        
+        hideReadOnlyIndicator();
+    }
+}
+
+// Show read-only indicator in UI
+function showReadOnlyIndicator() {
+    // Check if indicator already exists
+    let indicator = document.getElementById('readOnlyIndicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'readOnlyIndicator';
+        indicator.className = 'read-only-indicator';
+        indicator.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span>View Only</span>
+        `;
+        
+        // Insert after toolbar
+        const toolbar = document.querySelector('.toolbar');
+        if (toolbar) {
+            toolbar.parentNode.insertBefore(indicator, toolbar.nextSibling);
+        }
+    }
+    indicator.style.display = 'flex';
+}
+
+// Hide read-only indicator
+function hideReadOnlyIndicator() {
+    const indicator = document.getElementById('readOnlyIndicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
+
+// Make function globally available
+window.setGraphInteractionMode = setGraphInteractionMode;
+
 // ===== GRAPH SEARCH ===== [VERSION 2025-10-27-16:00]
 function searchInGraph(searchTerm = '') {
     console.log('[SEARCH] Function called with term:', searchTerm);

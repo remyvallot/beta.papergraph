@@ -47,6 +47,9 @@ export async function generateShareToken(projectId) {
 /**
  * Get the shareable link for a project
  */
+import { supabase, config } from './config.js';
+
+// Get share link for a project
 export async function getShareLink(projectId) {
     const { data, error } = await supabase
         .from('projects')
@@ -59,10 +62,10 @@ export async function getShareLink(projectId) {
     if (!data.share_token) {
         // Generate token if it doesn't exist
         const token = await generateShareToken(projectId);
-        return `${window.location.origin}/editor.html?share=${token}`;
+        return `${config.baseUrl}/editor.html?share=${token}`;
     }
 
-    return `${window.location.origin}/editor.html?share=${data.share_token}`;
+    return `${config.baseUrl}/editor.html?share=${data.share_token}`;
 }
 
 /**

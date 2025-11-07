@@ -26,6 +26,34 @@
     <link rel="stylesheet" href="css/base/cursors.css">
     
     <link rel="icon" type="image/svg+xml" href="assets/logo-papergraph.svg">
+    
+    <style>
+        /* Shared project badge */
+        .pg-project-shared-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            z-index: 10;
+        }
+        
+        .pg-project-preview {
+            position: relative;
+        }
+        
+        /* Shared project card styling */
+        .pg-project-card.pg-project-shared {
+            border-left: 3px solid #667eea;
+        }
+    </style>
 </head>
 <body>
     <!-- Page Container -->
@@ -216,10 +244,14 @@
         }
 
         // Render projects
-        function renderProjects() {
+        async function renderProjects() {
             const loadingState = document.getElementById('loadingState');
             const emptyState = document.getElementById('emptyState');
             const projectsGrid = document.getElementById('projectsGrid');
+            
+            // Get current user ID
+            const { data: { user } } = await supabase.auth.getUser();
+            const currentUserId = user?.id;
 
             loadingState.style.display = 'none';
 
@@ -233,17 +265,19 @@
                 projectsGrid.innerHTML = projects.map(project => {
                     const stats = getProjectStats(project);
                     const preview = generateProjectPreview(project);
+                    const isShared = project.user_id !== currentUserId; // Check if user is not owner
                     
                     return `
-                    <div class="pg-project-card" onclick="openProject('${project.id}')">
+                    <div class="pg-project-card${isShared ? ' pg-project-shared' : ''}" onclick="openProject('${project.id}')">
                         <div class="pg-project-preview">
                             ${preview}
+                            ${isShared ? '<span class="pg-project-shared-badge">SHARED</span>' : ''}
                         </div>
                         <div class="pg-project-info">
                             <div class="pg-project-header">
                                 <h3 class="pg-project-title" 
                                     id="title-${project.id}"
-                                    contenteditable="false" 
+                                    contenteditable="${!isShared}" 
                                     data-project-id="${project.id}"
                                     data-original-name="${escapeHtml(project.name)}"
                                     onclick="event.stopPropagation();"

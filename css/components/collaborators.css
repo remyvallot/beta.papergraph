@@ -1,0 +1,122 @@
+/**
+ * Collaborator Avatars
+ * Display active collaborators next to the Share button
+ */
+
+.collaborator-avatars-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin-right: 8px;
+}
+
+.collaborator-avatar {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    overflow: hidden;
+}
+
+.collaborator-avatar:hover {
+    transform: scale(1.1);
+    border-color: var(--color-primary);
+    z-index: 10;
+}
+
+/* Presence indicator */
+.collaborator-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background: #22c55e; /* Green for active */
+    border: 2px solid var(--color-bg);
+    border-radius: 50%;
+}
+
+.collaborator-avatar.inactive::after {
+    background: #64748b; /* Gray for inactive */
+}
+
+/* Avatar image */
+.collaborator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Tooltip */
+.collaborator-avatar-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+}
+
+.collaborator-avatar:hover .collaborator-avatar-tooltip {
+    opacity: 1;
+}
+
+/* Tooltip arrow */
+.collaborator-avatar-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: var(--color-surface-raised);
+}
+
+/* Max avatars displayed (rest in "+N" badge) */
+.collaborator-avatars-container .collaborator-avatar:nth-child(n+5) {
+    display: none;
+}
+
+.collaborator-more-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-surface-raised);
+    border: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.collaborator-more-badge:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    transform: scale(1.1);
+}

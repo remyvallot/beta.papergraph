@@ -182,6 +182,11 @@ export function autoSaveProject(projectId, projectData, delay = 2000) {
 
     saveTimeout = setTimeout(async () => {
         try {
+            // Mark as local update to avoid realtime loop
+            if (typeof window.markLocalUpdate === 'function') {
+                window.markLocalUpdate();
+            }
+            
             await updateProject(projectId, projectData);
             console.log('Project auto-saved');
         } catch (error) {

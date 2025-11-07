@@ -652,6 +652,7 @@ CREATE TRIGGER on_project_created
 -- ============================================================================
 
 ALTER PUBLICATION supabase_realtime ADD TABLE public.projects;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 
 
 -- ============================================================================

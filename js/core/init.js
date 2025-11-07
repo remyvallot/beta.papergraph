@@ -318,9 +318,9 @@ function initializeEventListeners() {
     document.getElementById('fileInput').addEventListener('change', importProject);
     document.getElementById('bibtexFileInput').addEventListener('change', importBibtexFile);
     
-    // Toolbar actions (with permission guards)
+    // Toolbar actions
     document.getElementById('addArticleBtn').addEventListener('click', () => {
-        executeIfCanEdit(() => openArticleModal(), 'Add article');
+        openArticleModal();
     });
     document.getElementById('categoryFilterBtn').addEventListener('click', toggleCategoryDropdown);
     // Function to recenter/fit the graph view
@@ -490,12 +490,6 @@ function initializeEventListeners() {
             
             e.preventDefault();
             
-            // Check permissions before deleting
-            if (!canEdit()) {
-                showReadOnlyNotification();
-                return;
-            }
-            
             if (selectedNodeId !== null) {
                 if (confirm('Delete this article?')) {
                     deleteArticleById(selectedNodeId);
@@ -518,19 +512,15 @@ function initializeEventListeners() {
     // Radial menu actions
     document.querySelector('.radial-connect').addEventListener('click', () => {
         if (selectedNodeId) {
-            executeIfCanEdit(() => {
-                startConnectionMode(selectedNodeId);
-                hideRadialMenu();
-            }, 'Create connection');
+            startConnectionMode(selectedNodeId);
+            hideRadialMenu();
         }
     });
     
     document.querySelector('.radial-delete').addEventListener('click', () => {
         if (selectedNodeId) {
-            executeIfCanEdit(() => {
-                deleteArticleById(selectedNodeId);
-                hideRadialMenu();
-            }, 'Delete article');
+            deleteArticleById(selectedNodeId);
+            hideRadialMenu();
         }
     });
     
@@ -539,10 +529,10 @@ function initializeEventListeners() {
     
     // Modal
     document.getElementById('articleForm').addEventListener('submit', (e) => {
-        executeIfCanEdit(() => saveArticle(e), 'Save article');
+        saveArticle(e);
     });
     document.getElementById('deleteArticleBtn').addEventListener('click', () => {
-        executeIfCanEdit(() => deleteArticle(), 'Delete article');
+        deleteArticle();
     });
     
     // Import functionality

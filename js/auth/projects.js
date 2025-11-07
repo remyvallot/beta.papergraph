@@ -7,8 +7,7 @@ import { supabase } from './config.js';
 import { getCurrentUser } from './auth.js';
 
 /**
- * Load all projects for the current user (owned + shared)
- * Uses the get_user_projects() function from database
+ * Load all projects for the current user
  */
 export async function loadProjects() {
     const user = await getCurrentUser();
@@ -17,9 +16,12 @@ export async function loadProjects() {
         throw new Error('User not authenticated');
     }
 
-    // Use RPC function to get owned + shared projects
+    // Get projects owned by user
     const { data, error } = await supabase
-        .rpc('get_user_projects', { user_uuid: user.id });
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
 
     if (error) {
         console.error('Load projects error:', error);
@@ -31,7 +33,6 @@ export async function loadProjects() {
 
 /**
  * Load a specific project by ID
- * Uses SECURITY DEFINER function to avoid RLS recursion
  */
 export async function loadProject(projectId) {
     const user = await getCurrentUser();
@@ -40,21 +41,24 @@ export async function loadProject(projectId) {
         throw new Error('User not authenticated');
     }
 
-    // Use RPC function to bypass RLS and avoid recursion
+    // Get project owned by user
     const { data, error } = await supabase
-        .rpc('get_project_if_member', { proj_id: projectId });
+        .from('projects')
+        .select('*')
+        .eq('id', projectId)
+        .eq('user_id', user.id)
+        .single();
 
     if (error) {
         console.error('Load project error:', error);
         throw error;
     }
 
-    // RPC returns array, get first result
-    if (!data || data.length === 0) {
+    if (!data) {
         throw new Error('Project not found or access denied');
     }
 
-    return data[0];
+    return data;
 }
 
 /**
@@ -182,11 +186,6 @@ export function autoSaveProject(projectId, projectData, delay = 2000) {
 
     saveTimeout = setTimeout(async () => {
         try {
-            // Mark as local update to avoid realtime loop
-            if (typeof window.markLocalUpdate === 'function') {
-                window.markLocalUpdate();
-            }
-            
             await updateProject(projectId, projectData);
             console.log('Project auto-saved');
         } catch (error) {

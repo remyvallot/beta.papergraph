@@ -47,6 +47,42 @@ function saveToLocalStorage(silent = false) {
 
 function loadFromLocalStorage() {
     try {
+        // Check if we're loading a gallery project
+        if (window.isReadOnlyMode && window.galleryProjectData) {
+            console.log('📖 Loading gallery project in read-only mode');
+            const galleryData = window.galleryProjectData.data;
+            
+            // Load project data structure - support both formats
+            if (galleryData.nodes && galleryData.edges) {
+                // Cloud format (nodes/edges)
+                appData = {
+                    articles: galleryData.nodes || [],
+                    connections: galleryData.edges || []
+                };
+                tagZones = galleryData.zones || [];
+                window.savedNodePositions = galleryData.positions || {};
+            } else if (galleryData.articles && galleryData.connections) {
+                // Editor format (articles/connections)
+                appData = {
+                    articles: galleryData.articles || [],
+                    connections: galleryData.connections || []
+                };
+                tagZones = galleryData.tagZones || galleryData.zones || [];
+                window.savedNodePositions = galleryData.nodePositions || galleryData.positions || {};
+            }
+            
+            console.log('✓ Loaded gallery project:', appData.articles.length, 'articles');
+            console.log('✓ Loaded gallery zones:', tagZones.length, 'zones');
+            
+            // Initialize control points
+            edgeControlPoints = {};
+            window.edgeControlPoints = edgeControlPoints;
+            nextControlPointId = -1;
+            window.nextControlPointId = nextControlPointId;
+            
+            return;
+        }
+        
         const saved = localStorage.getItem('papermap_data');
         if (saved) {
             appData = JSON.parse(saved);

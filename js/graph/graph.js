@@ -25,6 +25,10 @@ function initializeGraph() {
     const container = document.getElementById('graphContainer');
     const graphData = getGraphData();
     
+    // Check if we're in read-only mode
+    const isReadOnly = window.isReadOnlyMode || false;
+    console.log(`📊 Initializing graph - Read-only mode: ${isReadOnly}`);
+    
     const options = {
         nodes: {
             shape: 'box',
@@ -104,8 +108,9 @@ function initializeGraph() {
             selectConnectedEdges: true,
             tooltipDelay: 200,
             dragView: false,  // Disable default left-click drag
-            multiselect: true,  // Enable multi-selection
-            selectable: true
+            multiselect: !isReadOnly,  // Disable multi-selection in read-only mode
+            selectable: true,
+            dragNodes: !isReadOnly  // Disable node dragging in read-only mode
         }
     };
     

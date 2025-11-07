@@ -18,6 +18,7 @@
     
     <!-- Modular CSS - Components -->
     <link rel="stylesheet" href="css/components/buttons.css">
+    <link rel="stylesheet" href="css/components/dropdown.css">
     <link rel="stylesheet" href="css/components/modals.css">
     <link rel="stylesheet" href="css/components/footer.css">
     <link rel="stylesheet" href="css/components/onboarding.css">
@@ -33,11 +34,106 @@
         
         <!-- Header -->
         <header class="pg-header">
-            <!-- Logo Link -->
-            <a href="index.html" class="logo-menu-btn">
-                <img src="assets/logo-papergraph.svg" alt="papergraph" class="logo-icon">
-                <span class="logo-text">papergraph</span>
-            </a>
+            <!-- Logo Menu -->
+            <div class="logo-menu-container">
+                <button class="logo-menu-btn">
+                    <img src="assets/logo-papergraph.svg" alt="papergraph" class="logo-icon">
+                    <span class="logo-text">papergraph</span>
+                </button>
+                
+                <!-- Logo Dropdown -->
+                <div id="logoDropdown" class="logo-dropdown">
+                    <button class="logo-dropdown-item" onclick="window.navigateTo('projects.html')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="9" y1="21" x2="9" y2="9"/>
+                        </svg>
+                        <span>Dashboard</span>
+                    </button>
+                    <button class="logo-dropdown-item" onclick="createNewProject()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span>New Project</span>
+                    </button>
+                    <button class="logo-dropdown-item logo-dropdown-item-submenu" id="projectImportMenu">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span>Import</span>
+                        <svg class="submenu-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>
+                    <div class="logo-dropdown-divider"></div>
+                    <div class="logo-dropdown-section-title">Gallery</div>
+                    <button class="logo-dropdown-item" onclick="window.navigateTo('gallery.html')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                        <span>Explore Gallery</span>
+                    </button>
+                    <button class="logo-dropdown-item" onclick="openSubmitToGalleryModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <span>Submit to Gallery</span>
+                    </button>
+                    <div class="logo-dropdown-divider"></div>
+                    <div class="logo-dropdown-section-title">Help</div>
+                    <button class="logo-dropdown-item" onclick="window.open('https://github.com/remyvallot/papergraph#readme', '_blank')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2.5-3 4"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <span>Help</span>
+                    </button>
+                    <button class="logo-dropdown-item" onclick="window.open('https://github.com/remyvallot/papergraph/issues/new', '_blank')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <g transform="translate(0,-2)">
+                                <rect x="7" y="9" width="10" height="10" rx="5" ry="5"/>
+                                <line x1="7" y1="12" x2="3" y2="10"/>
+                                <line x1="7" y1="15" x2="3" y2="15"/>
+                                <line x1="7" y1="18" x2="3" y2="20"/>
+                                <line x1="17" y1="12" x2="21" y2="10"/>
+                                <line x1="17" y1="15" x2="21" y2="15"/>
+                                <line x1="17" y1="18" x2="21" y2="20"/>
+                            </g>
+                        </svg>
+                        <span>Report Bug</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Import Submenu for Projects -->
+            <div id="projectImportSubmenu" class="dropdown-submenu" style="display: none; position: fixed;">
+                <button class="logo-dropdown-item" onclick="importProject()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span>Import Project</span>
+                </button>
+                <button class="logo-dropdown-item" onclick="importBibtex()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <path d="M9 15h6"/>
+                        <path d="M9 11h6"/>
+                    </svg>
+                    <span>Import BibTeX (.bib)</span>
+                </button>
+            </div>
             
             <div class="pg-header-actions">
                 <!-- User Avatar Dropdown -->
@@ -126,6 +222,67 @@
     <!-- Preferences Modal -->
     <div data-include="preferences-modal"></div>
 
+    <!-- Submit to Gallery Modal -->
+    <div id="submitGalleryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSubmitGalleryModal()">&times;</span>
+            <h2>Submit to Gallery</h2>
+            <form id="submitGalleryForm" onsubmit="handleSubmitToGallery(event)">
+                <div class="form-group">
+                    <label for="submitProjectSelect">Select Project</label>
+                    <select id="submitProjectSelect" class="form-input" required>
+                        <option value="">Choose a project...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="submitTitle">Title</label>
+                    <input type="text" id="submitTitle" class="form-input" placeholder="Project title" maxlength="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="submitDescription">Description (2 lines max)</label>
+                    <textarea id="submitDescription" class="form-input" placeholder="Brief description of your research project..." rows="3" maxlength="200" required></textarea>
+                    <small style="color: #999;"><span id="descCharCount">0</span>/200 characters</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="submitAuthor">Full Name</label>
+                    <input type="text" id="submitAuthor" class="form-input" placeholder="Your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="submitAffiliation">Affiliation</label>
+                    <input type="text" id="submitAffiliation" class="form-input" placeholder="University or institution" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Thumbnail (optional)</label>
+                    <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 20px; text-align: center;">
+                        <div id="thumbnailPreview" style="display: none; position: relative;">
+                            <img id="thumbnailImg" src="" alt="Thumbnail" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                            <button type="button" onclick="removeThumbnail()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">×</button>
+                        </div>
+                        <div id="thumbnailPlaceholder">
+                            <p style="margin: 0 0 10px;">Click to upload an image</p>
+                            <button type="button" class="btn-secondary" onclick="document.getElementById('thumbnailInput').click()">Choose File</button>
+                        </div>
+                        <input type="file" id="thumbnailInput" accept="image/png,image/jpeg" style="display: none;">
+                    </div>
+                </div>
+
+                <p style="background: #f5f9ff; border-left: 4px solid #4a90e2; padding: 12px; margin: 20px 0; font-size: 0.9rem;">
+                    <strong>Note:</strong> GitHub authentication is required. Submissions create a merge request for review.
+                </p>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="btn-secondary" onclick="closeSubmitGalleryModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="submitGalleryButton">Submit Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- New Project Modal -->
     <div id="newProjectModal" class="modal">
         <div class="modal-content modal-small">
@@ -191,6 +348,9 @@
             
             // Setup user dropdown
             setupUserDropdown();
+            
+            // Setup logo dropdown
+            setupLogoDropdown();
 
             // Load projects
             await refreshProjects();
@@ -905,6 +1065,46 @@
             });
         }
 
+        function setupLogoDropdown() {
+            const logoMenuBtn = document.querySelector('.logo-menu-btn');
+            const logoDropdown = document.getElementById('logoDropdown');
+            const importMenu = document.getElementById('projectImportMenu');
+            const importSubmenu = document.getElementById('projectImportSubmenu');
+            
+            if (!logoMenuBtn || !logoDropdown) return;
+            
+            // Toggle dropdown
+            logoMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                logoDropdown.classList.toggle('active');
+                // Close submenu when main dropdown closes
+                if (!logoDropdown.classList.contains('active')) {
+                    importSubmenu.style.display = 'none';
+                }
+            });
+            
+            // Handle import submenu
+            if (importMenu && importSubmenu) {
+                importMenu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const rect = importMenu.getBoundingClientRect();
+                    importSubmenu.style.top = rect.top + 'px';
+                    importSubmenu.style.left = rect.right + 'px';
+                    importSubmenu.style.display = importSubmenu.style.display === 'block' ? 'none' : 'block';
+                });
+            }
+            
+            // Close dropdown and submenu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!logoMenuBtn.contains(e.target) && 
+                    !logoDropdown.contains(e.target) && 
+                    !importSubmenu.contains(e.target)) {
+                    logoDropdown.classList.remove('active');
+                    importSubmenu.style.display = 'none';
+                }
+            });
+        }
+
         // Import project - create new project from JSON file
         window.importProject = function() {
             // Create file input
@@ -1000,6 +1200,118 @@
                 e.target.value = '';
             };
             input.click();
+        };
+
+        // Import BibTeX file
+        window.importBibtex = function() {
+            alert('BibTeX import feature coming soon! For now, you can import BibTeX files from within the editor.');
+        };
+
+        // Submit to Gallery Modal
+        window.openSubmitToGalleryModal = async function() {
+            // Check if user is logged in
+            if (!currentUser) {
+                console.log('⚠️ User not logged in, cannot submit to gallery');
+                alert('Please sign in to submit a project to the gallery.');
+                return;
+            }
+            
+            const modal = document.getElementById('submitGalleryModal');
+            modal.style.display = 'block';
+            
+            // Load user's projects
+            try {
+                const { loadProjects } = await import('./js/auth/projects.js');
+                const projects = await loadProjects();
+                
+                const select = document.getElementById('submitProjectSelect');
+                select.innerHTML = '<option value="">Choose a project...</option>';
+                
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = project.name;
+                    select.appendChild(option);
+                });
+                
+                // Pre-fill author info
+                const fullName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '';
+                document.getElementById('submitAuthor').value = fullName;
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                alert('Failed to load your projects. Please try again.');
+                closeSubmitGalleryModal();
+            }
+        };
+
+        window.closeSubmitGalleryModal = function() {
+            document.getElementById('submitGalleryModal').style.display = 'none';
+            document.getElementById('submitGalleryForm').reset();
+            removeThumbnail();
+        };
+
+        window.removeThumbnail = function() {
+            document.getElementById('thumbnailInput').value = '';
+            document.getElementById('thumbnailPreview').style.display = 'none';
+            document.getElementById('thumbnailPlaceholder').style.display = 'block';
+        };
+
+        // Thumbnail upload handler
+        document.getElementById('thumbnailInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('thumbnailImg').src = event.target.result;
+                document.getElementById('thumbnailPreview').style.display = 'block';
+                document.getElementById('thumbnailPlaceholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Character count
+        document.getElementById('submitDescription').addEventListener('input', function() {
+            document.getElementById('descCharCount').textContent = this.value.length;
+        });
+
+        // Form submit
+        window.handleSubmitToGallery = async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitGalleryButton');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                const { submitToGallery } = await import('./js/data/github-submit.js');
+                
+                const projectId = document.getElementById('submitProjectSelect').value;
+                const title = document.getElementById('submitTitle').value;
+                const description = document.getElementById('submitDescription').value;
+                const author = document.getElementById('submitAuthor').value;
+                const affiliation = document.getElementById('submitAffiliation').value;
+                const thumbnailFile = document.getElementById('thumbnailInput').files[0];
+                
+                await submitToGallery({
+                    projectId,
+                    title,
+                    description,
+                    author,
+                    affiliation,
+                    thumbnail: thumbnailFile
+                });
+                
+                alert('✅ Your project has been submitted for review!\n\nA merge request has been created on GitHub.');
+                closeSubmitGalleryModal();
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('Failed to submit project: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Project';
+            }
         };
 
         // Sign out

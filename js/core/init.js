@@ -1,6 +1,24 @@
 // ===== INITIALIZATION & EVENT LISTENERS =====
 // Application initialization and all event bindings
 
+// Check if we're in read-only mode (gallery project)
+const urlParams = new URLSearchParams(window.location.search);
+const isReadOnlyMode = urlParams.get('mode') === 'readonly';
+let galleryProjectData = null;
+
+if (isReadOnlyMode) {
+    // Load gallery project from sessionStorage
+    const galleryData = sessionStorage.getItem('galleryProject');
+    if (galleryData) {
+        galleryProjectData = JSON.parse(galleryData);
+        console.log('📖 Read-only mode active - Gallery project loaded');
+    }
+}
+
+// Export read-only state
+window.isReadOnlyMode = isReadOnlyMode;
+window.galleryProjectData = galleryProjectData;
+
 function initializeEventListeners() {
     // View toggle switch
     const viewToggle = document.getElementById('viewToggle');
@@ -135,6 +153,11 @@ function initializeEventListeners() {
                 const editorUserAvatar = document.getElementById('editorUserAvatar');
                 const editorUserDropdown = document.getElementById('editorUserDropdown');
                 
+                if (!editorUserAvatarBtn || !editorUserAvatar || !editorUserDropdown) {
+                    console.error('User dropdown elements not found');
+                    return;
+                }
+                
                 // Populate user info
                 const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
                 const username = user.user_metadata?.username;
@@ -144,40 +167,64 @@ function initializeEventListeners() {
                 
                 if (avatarUrl) {
                     editorUserAvatar.src = avatarUrl;
-                    document.getElementById('editorUserAvatarDropdown').src = avatarUrl;
+                    const editorUserAvatarDropdown = document.getElementById('editorUserAvatarDropdown');
+                    if (editorUserAvatarDropdown) {
+                        editorUserAvatarDropdown.src = avatarUrl;
+                    }
                 }
                 
                 // Display name first, then username below
-                document.getElementById('editorUserNameDropdown').textContent = displayName;
+                const editorUserNameDropdown = document.getElementById('editorUserNameDropdown');
+                if (editorUserNameDropdown) {
+                    editorUserNameDropdown.textContent = displayName;
+                }
                 
                 const usernameElement = document.getElementById('editorUserUsernameDropdown');
-                if (username) {
-                    usernameElement.textContent = `@${username}`;
-                    usernameElement.style.display = 'block';
-                } else {
-                    usernameElement.style.display = 'none';
+                if (usernameElement) {
+                    if (username) {
+                        usernameElement.textContent = `@${username}`;
+                        usernameElement.style.display = 'block';
+                    } else {
+                        usernameElement.style.display = 'none';
+                    }
                 }
                 
                 editorUserAvatarBtn.style.display = 'flex';
                 
-                // Toggle dropdown
-                editorUserAvatarBtn.addEventListener('click', (e) => {
+                // Remove existing event listeners by cloning and replacing
+                const newAvatarBtn = editorUserAvatarBtn.cloneNode(true);
+                editorUserAvatarBtn.parentNode.replaceChild(newAvatarBtn, editorUserAvatarBtn);
+                
+                // Toggle dropdown - attach to new button
+                newAvatarBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     editorUserDropdown.classList.toggle('active');
                 });
                 
                 // Close dropdown when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!editorUserAvatarBtn.contains(e.target) && !editorUserDropdown.contains(e.target)) {
+                const closeDropdownHandler = (e) => {
+                    if (!newAvatarBtn.contains(e.target) && !editorUserDropdown.contains(e.target)) {
                         editorUserDropdown.classList.remove('active');
                     }
-                });
+                };
+                
+                // Remove any previous handler with same identifier
+                document.removeEventListener('click', window.editorDropdownCloseHandler);
+                window.editorDropdownCloseHandler = closeDropdownHandler;
+                document.addEventListener('click', closeDropdownHandler);
                 
                 // Sign out button
-                document.getElementById('editorSignOut').addEventListener('click', async () => {
-                    await config.supabase.auth.signOut();
-                    window.location.href = 'index.html';
-                });
+                const editorSignOut = document.getElementById('editorSignOut');
+                if (editorSignOut) {
+                    // Remove existing listeners
+                    const newSignOutBtn = editorSignOut.cloneNode(true);
+                    editorSignOut.parentNode.replaceChild(newSignOutBtn, editorSignOut);
+                    
+                    newSignOutBtn.addEventListener('click', async () => {
+                        await config.supabase.auth.signOut();
+                        window.location.href = 'index.html';
+                    });
+                }
             }
         } catch (error) {
             console.log('User not authenticated or error loading user data');
@@ -209,39 +256,7 @@ function initializeEventListeners() {
     }
     
     // Dropdown menu actions
-    document.getElementById('actionNewProject').addEventListener('click', async () => {
-        mainDropdown.classList.remove('active');
-        closeAllSubmenus();
-        
-        // Check if user is authenticated
-        try {
-            const config = await import('../auth/config.js');
-            const { data: { session } } = await config.supabase.auth.getSession();
-            
-            if (session) {
-                // Open new project modal for authenticated users
-                if (typeof window.openNewProjectModal === 'function') {
-                    window.openNewProjectModal();
-                }
-            } else {
-                // For non-authenticated users, use the old behavior (clear local)
-                if (confirm('Create a new empty project? Current data will be cleared.')) {
-                    newProject();
-                    // Close onboarding if it's open
-                    if (typeof window.closeOnboarding === 'function') {
-                        window.closeOnboarding();
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error checking auth:', error);
-            // Fallback to old behavior
-            newProject();
-            if (typeof window.closeOnboarding === 'function') {
-                window.closeOnboarding();
-            }
-        }
-    });
+    // Note: actionNewProject button removed from dropdown menu
     
     document.getElementById('actionImport').addEventListener('click', () => {
         document.getElementById('fileInput').click();
@@ -300,13 +315,35 @@ function initializeEventListeners() {
         closeAllSubmenus();
     });
     
-    // Explore Gallery - DISABLED (Coming Soon)
-    document.getElementById('actionExploreGallery').addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        // Disabled - Coming Soon
+    // Gallery menu actions
+    document.getElementById('actionExploreGallery').addEventListener('click', () => {
+        window.location.href = 'gallery.html';
         mainDropdown.classList.remove('active');
         closeAllSubmenus();
+    });
+    
+    document.getElementById('actionSubmitToGallery').addEventListener('click', async () => {
+        mainDropdown.classList.remove('active');
+        closeAllSubmenus();
+        
+        // Check if user is logged in
+        try {
+            const { supabase } = await import('../auth/config.js');
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                if (confirm('You need to be signed in to submit to the gallery. Go to sign in page?')) {
+                    window.location.href = 'index.html#auth';
+                }
+                return;
+            }
+            
+            // Import and call the submit function
+            const { openSubmitToGalleryModal } = await import('../data/github-submit.js');
+            await openSubmitToGalleryModal();
+        } catch (error) {
+            console.error('Error opening submit modal:', error);
+            alert('Failed to open submit modal. Please try again.');
+        }
     });
     
     document.getElementById('actionReportBug').addEventListener('click', () => {

@@ -39,6 +39,11 @@ function openRadialMenuForNode(nodeId) {
 }
 
 function showRadialMenu(x, y, nodeId, nodeWidth = 100, nodeHeight = 50) {
+    // Don't show radial menu in read-only mode
+    if (window.isReadOnlyMode) {
+        return;
+    }
+    
     const menu = document.getElementById('radialMenu');
     
     // Clear any previous pulse animation and reset previous node

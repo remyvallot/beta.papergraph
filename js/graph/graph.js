@@ -114,6 +114,9 @@ function initializeGraph() {
     
     network = new vis.Network(container, graphData, options);
     
+    // Make network globally accessible for other modules
+    window.network = network;
+    
     // Enable right-click drag for panning
     const canvas = network.canvas.frame.canvas;
     let dragStartPos = { x: 0, y: 0 };
@@ -390,12 +393,9 @@ function initializeGraph() {
             if (nodesToUpdate.length > 0) {
                 network.body.data.nodes.update(nodesToUpdate);
                 console.log('✓ Applied saved positions to', nodesToUpdate.length, 'nodes');
-                // Fit after restoring positions
+                
+                // Check node zone membership to update colors after positions are restored
                 setTimeout(() => {
-                    network.fit();
-                    console.log('Graph fitted after position restoration');
-                    
-                    // Check node zone membership to update colors after positions are restored
                     if (typeof checkNodeZoneMembership === 'function' && tagZones.length > 0) {
                         console.log('🎨 Checking zone membership after project load...');
                         checkNodeZoneMembership();
@@ -941,13 +941,13 @@ function initializeGraph() {
     
     network.on('hoverNode', (params) => {
         if (connectionMode.active && params.node !== connectionMode.fromNodeId) {
-            network.canvas.body.container.style.cursor = 'pointer';
+            network.canvas.body.container.style.cursor = "url('assets/cursors/pointer.svg'), pointer";
         }
     });
     
     network.on('blurNode', () => {
         if (connectionMode.active) {
-            network.canvas.body.container.style.cursor = 'crosshair';
+            network.canvas.body.container.style.cursor = "url('assets/cursors/crosshair.svg'), crosshair";
         }
     });
     

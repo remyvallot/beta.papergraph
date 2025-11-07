@@ -67,9 +67,24 @@ function exportProject() {
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     
+    // Get project title from the input field or localStorage
+    let projectTitle = 'papergraph';
+    const titleInput = document.getElementById('projectTitleInput');
+    if (titleInput && titleInput.value.trim()) {
+        projectTitle = titleInput.value.trim();
+    } else {
+        const storedTitle = localStorage.getItem('currentProjectTitle');
+        if (storedTitle) {
+            projectTitle = storedTitle;
+        }
+    }
+    
+    // Clean filename (remove invalid characters)
+    const cleanTitle = projectTitle.replace(/[^a-z0-9_\-]/gi, '_').toLowerCase();
+    
     const a = document.createElement('a');
     a.href = url;
-    a.download = `papergraph_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `${cleanTitle}.papergraph`;
     a.click();
     
     URL.revokeObjectURL(url);
@@ -82,12 +97,26 @@ function exportToImage() {
         return;
     }
     
+    // Get project title
+    let projectTitle = 'papergraph';
+    const titleInput = document.getElementById('projectTitleInput');
+    if (titleInput && titleInput.value.trim()) {
+        projectTitle = titleInput.value.trim();
+    } else {
+        const storedTitle = localStorage.getItem('currentProjectTitle');
+        if (storedTitle) {
+            projectTitle = storedTitle;
+        }
+    }
+    
+    const cleanTitle = projectTitle.replace(/[^a-z0-9_\-]/gi, '_').toLowerCase();
+    
     const canvas = network.canvas.frame.canvas;
     const url = canvas.toDataURL('image/png');
     
     const a = document.createElement('a');
     a.href = url;
-    a.download = `papergraph_${new Date().toISOString().split('T')[0]}.png`;
+    a.download = `${cleanTitle}.png`;
     a.click();
     
     showNotification('Image exportée en PNG!', 'success');
@@ -472,19 +501,33 @@ function exportToSVG() {
   ${svgElements.join('\n  ')}
 </svg>`;
         
+        // Get project title
+        let projectTitle = 'papergraph';
+        const titleInput = document.getElementById('projectTitleInput');
+        if (titleInput && titleInput.value.trim()) {
+            projectTitle = titleInput.value.trim();
+        } else {
+            const storedTitle = localStorage.getItem('currentProjectTitle');
+            if (storedTitle) {
+                projectTitle = storedTitle;
+            }
+        }
+        
+        const cleanTitle = projectTitle.replace(/[^a-z0-9_\-]/gi, '_').toLowerCase();
+        
         const blob = new Blob([svgContent], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
         
         const a = document.createElement('a');
         a.href = url;
-        a.download = `papergraph_${new Date().toISOString().split('T')[0]}.svg`;
+        a.download = `${cleanTitle}.svg`;
         a.click();
         
         URL.revokeObjectURL(url);
-        showNotification('Image vectorielle exportée en SVG!', 'success');
+        showNotification('Vector image exported to SVG!', 'success');
     } catch (error) {
-        console.error('Erreur lors de l\'export SVG:', error);
-        showNotification('Erreur lors de l\'export SVG: ' + error.message, 'error');
+        console.error('Error exporting SVG:', error);
+        showNotification('Error exporting SVG: ' + error.message, 'error');
     }
 }
 
@@ -499,6 +542,188 @@ function escapeXml(text) {
         .replace(/'/g, '&apos;');
 }
 
+/**
+ * Generate SVG content without downloading (for preview generation)
+ * Returns the SVG string - uses the full export SVG logic
+ */
+function generateSVGContent() {
+    // Use window.network to ensure access from anywhere
+    const networkInstance = typeof network !== 'undefined' ? network : window.network;
+    
+    if (!networkInstance) {
+        console.warn('generateSVGContent: No network instance available');
+        return null;
+    }
+    
+    try {
+        const canvas = networkInstance.canvas.frame.canvas;
+        const width = canvas.width;
+        const height = canvas.height;
+        const positions = networkInstance.getPositions();
+        const scale = networkInstance.getScale();
+        
+        let svgElements = [];
+        const nodes = networkInstance.body.data.nodes.get();
+        const edges = networkInstance.body.data.edges.get();
+        
+        // Draw zones first (background)
+        if (window.tagZones && window.tagZones.length > 0) {
+            const sortedZones = [...window.tagZones].sort((a, b) => {
+                const areaA = a.width * a.height;
+                const areaB = b.width * b.height;
+                return areaB - areaA;
+            });
+            
+            sortedZones.forEach(zone => {
+                const topLeft = networkInstance.canvasToDOM({ x: zone.x, y: zone.y });
+                const bottomRight = networkInstance.canvasToDOM({ x: zone.x + zone.width, y: zone.y + zone.height });
+                
+                const x = topLeft.x;
+                const y = topLeft.y;
+                const w = bottomRight.x - topLeft.x;
+                const h = bottomRight.y - topLeft.y;
+                
+                const color = zone.color;
+                const r = parseInt(color.substr(1, 2), 16);
+                const g = parseInt(color.substr(3, 2), 16);
+                const b = parseInt(color.substr(5, 2), 16);
+                
+                const zoneStrokeWidth = 3 * scale;
+                const zoneDashArray = `${10 * scale},${5 * scale}`;
+                svgElements.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" 
+                    fill="rgba(${r},${g},${b},0.1)" 
+                    stroke="rgba(${r},${g},${b},0.3)" 
+                    stroke-width="${zoneStrokeWidth}" 
+                    stroke-dasharray="${zoneDashArray}"/>`);
+                
+                if (zone.tag && zone.tag.trim() !== '') {
+                    const titleCanvasX = zone.x + 10;
+                    const titleCanvasY = zone.y + 10;
+                    const titlePos = networkInstance.canvasToDOM({ x: titleCanvasX, y: titleCanvasY });
+                    const titleX = titlePos.x;
+                    const titleY = titlePos.y;
+                    const textPadding = 10 * scale;
+                    const textPaddingRight = 5 * scale;
+                    const fontSize = 24 * scale;
+                    
+                    const ctx = networkInstance.canvas.frame.canvas.getContext('2d');
+                    ctx.save();
+                    ctx.font = `bold ${fontSize}px Arial`;
+                    const textWidth = ctx.measureText(zone.tag).width;
+                    ctx.restore();
+                    
+                    const textHeight = fontSize * 1.2;
+                    
+                    svgElements.push(`<rect x="${titleX}" y="${titleY}" 
+                        width="${textWidth + textPadding + textPaddingRight}" 
+                        height="${textHeight + textPadding}" 
+                        fill="rgba(${r},${g},${b},0.2)"/>`);
+                    
+                    const textY = titleY + textPadding + fontSize * 0.8;
+                    svgElements.push(`<text x="${titleX + textPadding}" y="${textY}" 
+                        font-family="Arial" font-size="${fontSize}" font-weight="bold" 
+                        fill="${color}">${escapeXml(zone.tag)}</text>`);
+                }
+            });
+        }
+        
+        // Draw edges with curves like full export
+        edges.forEach(edge => {
+            const fromPos = positions[edge.from];
+            const toPos = positions[edge.to];
+            
+            if (!fromPos || !toPos) return;
+            
+            let x1 = networkInstance.canvasToDOM(fromPos).x;
+            let y1 = networkInstance.canvasToDOM(fromPos).y;
+            let x2 = networkInstance.canvasToDOM(toPos).x;
+            let y2 = networkInstance.canvasToDOM(toPos).y;
+            
+            const color = edge.color?.color || '#848484';
+            const width = (edge.width || 1) * scale;
+            
+            // Draw smooth curved line (continuous roundness: 0.15)
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            // Add slight curve
+            const offset = dist * 0.15;
+            const perpX = -dy / dist * offset;
+            const perpY = dx / dist * offset;
+            const cx = midX + perpX;
+            const cy = midY + perpY;
+            
+            svgElements.push(`<path d="M ${x1} ${y1} Q ${cx} ${cy}, ${x2} ${y2}" 
+                stroke="${color}" stroke-width="${width}" 
+                fill="none"/>`);
+        });
+        
+        // Draw nodes
+        nodes.forEach(nodeData => {
+            const pos = positions[nodeData.id];
+            if (!pos) return;
+            
+            const domPos = networkInstance.canvasToDOM(pos);
+            const visNode = networkInstance.body.nodes[nodeData.id];
+            if (!visNode || !visNode.shape) return;
+            
+            const nodeCanvasW = visNode.shape.width || 100;
+            const nodeCanvasH = visNode.shape.height || 40;
+            
+            const topLeft = networkInstance.canvasToDOM({ x: pos.x - nodeCanvasW/2, y: pos.y - nodeCanvasH/2 });
+            const bottomRight = networkInstance.canvasToDOM({ x: pos.x + nodeCanvasW/2, y: pos.y + nodeCanvasH/2 });
+            const nodeW = bottomRight.x - topLeft.x;
+            const nodeH = bottomRight.y - topLeft.y;
+            
+            const x = domPos.x - nodeW / 2;
+            const y = domPos.y - nodeH / 2;
+            
+            const bgColor = nodeData.color || '#4a90e2';
+            const textColor = getContrastColorForSVG(bgColor);
+            const fontSize = 14 * scale;
+            
+            svgElements.push(`<rect x="${x}" y="${y}" width="${nodeW}" height="${nodeH}" 
+                fill="${bgColor}" rx="${10 * scale}" stroke="#ffffff" stroke-width="${2 * scale}"/>`);
+            
+            const label = nodeData.label || 'Node';
+            const textY = domPos.y + fontSize * 0.35;
+            svgElements.push(`<text x="${domPos.x}" y="${textY}" 
+                font-family="Arial" font-size="${fontSize}" 
+                fill="${textColor}" text-anchor="middle">${escapeXml(label)}</text>`);
+        });
+        
+        const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" 
+     width="${width}" height="${height}" 
+     viewBox="0 0 ${width} ${height}">
+  <title>PaperGraph Preview</title>
+  <rect width="100%" height="100%" fill="white"/>
+  ${svgElements.join('\n  ')}
+</svg>`;
+        
+        return svgContent;
+    } catch (error) {
+        console.error('Error generating SVG content:', error);
+        return null;
+    }
+}
+
+// Helper function for SVG text color contrast
+function getContrastColorForSVG(hexColor) {
+    const hex = hexColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.55 ? '#2c3e50' : '#ffffff';
+}
+
+// Make generateSVGContent available globally for cloud-storage module
+window.generateSVGContent = generateSVGContent;
+
 function importProject(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -509,10 +734,10 @@ function importProject(e) {
             const imported = JSON.parse(event.target.result);
             
             if (!imported.articles || !imported.connections) {
-                throw new Error('Format de fichier invalide');
+                throw new Error('Invalid file format');
             }
             
-            if (confirm('Cela va remplacer le projet actuel. Continuer ?')) {
+            if (confirm('This will replace the current project. Continue?')) {
                 // Extract tagZones if present
                 if (imported.tagZones) {
                     tagZones = imported.tagZones;
@@ -549,7 +774,7 @@ function importProject(e) {
                     }
                 }, 300); // Small delay to ensure graph is fully rendered
                 
-                showNotification('Projet importé!', 'success');
+                showNotification('Project imported!', 'success');
                 
                 // Close onboarding if it's open
                 if (typeof window.closeOnboarding === 'function') {
@@ -557,7 +782,7 @@ function importProject(e) {
                 }
             }
         } catch (err) {
-            showNotification('Erreur lors de l\'import: ' + err.message, 'error');
+            showNotification('Error importing: ' + err.message, 'error');
         }
     };
     reader.readAsText(file);
@@ -758,8 +983,22 @@ function exportToPdf() {
         doc.text('Generated by papergraph', pageWidth - margin, pageHeight - 10, { align: 'right' });
     }
     
+    // Get project title
+    let projectTitle = 'papergraph';
+    const titleInput = document.getElementById('projectTitleInput');
+    if (titleInput && titleInput.value.trim()) {
+        projectTitle = titleInput.value.trim();
+    } else {
+        const storedTitle = localStorage.getItem('currentProjectTitle');
+        if (storedTitle) {
+            projectTitle = storedTitle;
+        }
+    }
+    
+    const cleanTitle = projectTitle.replace(/[^a-z0-9_\-]/gi, '_').toLowerCase();
+    
     // Save PDF
-    doc.save(`papergraph_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`${cleanTitle}.pdf`);
     showNotification('PDF exported!', 'success');
 }
 
@@ -778,11 +1017,25 @@ function exportToBibtex() {
     });
     
     const blob = new Blob([bibtexContent], { type: 'text/plain;charset=utf-8' });
+    // Get project title
+    let projectTitle = 'papergraph';
+    const titleInput = document.getElementById('projectTitleInput');
+    if (titleInput && titleInput.value.trim()) {
+        projectTitle = titleInput.value.trim();
+    } else {
+        const storedTitle = localStorage.getItem('currentProjectTitle');
+        if (storedTitle) {
+            projectTitle = storedTitle;
+        }
+    }
+    
+    const cleanTitle = projectTitle.replace(/[^a-z0-9_\-]/gi, '_').toLowerCase();
+    
     const url = URL.createObjectURL(blob);
     
     const a = document.createElement('a');
     a.href = url;
-    a.download = `papergraph_${new Date().toISOString().split('T')[0]}.bib`;
+    a.download = `${cleanTitle}.bib`;
     a.click();
     
     URL.revokeObjectURL(url);

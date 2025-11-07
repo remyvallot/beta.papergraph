@@ -123,29 +123,123 @@ function initializeEventListeners() {
         savedOption.classList.add('selected');
     }
     
-    // Dark Theme Toggle
-    const themeToggle = document.getElementById('themeToggle');
+    // Setup Editor User Dropdown
+    async function setupEditorUserDropdown() {
+        try {
+            const config = await import('../auth/config.js');
+            const { data: { session } } = await config.supabase.auth.getSession();
+            
+            if (session && session.user) {
+                const user = session.user;
+                const editorUserAvatarBtn = document.getElementById('editorUserAvatarBtn');
+                const editorUserAvatar = document.getElementById('editorUserAvatar');
+                const editorUserDropdown = document.getElementById('editorUserDropdown');
+                
+                // Populate user info
+                const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+                const username = user.user_metadata?.username;
+                const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
+                const email = user.email;
+                const provider = user.app_metadata?.provider || 'email';
+                
+                if (avatarUrl) {
+                    editorUserAvatar.src = avatarUrl;
+                    document.getElementById('editorUserAvatarDropdown').src = avatarUrl;
+                }
+                
+                // Display name first, then username below
+                document.getElementById('editorUserNameDropdown').textContent = displayName;
+                
+                const usernameElement = document.getElementById('editorUserUsernameDropdown');
+                if (username) {
+                    usernameElement.textContent = `@${username}`;
+                    usernameElement.style.display = 'block';
+                } else {
+                    usernameElement.style.display = 'none';
+                }
+                
+                editorUserAvatarBtn.style.display = 'flex';
+                
+                // Toggle dropdown
+                editorUserAvatarBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editorUserDropdown.classList.toggle('active');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!editorUserAvatarBtn.contains(e.target) && !editorUserDropdown.contains(e.target)) {
+                        editorUserDropdown.classList.remove('active');
+                    }
+                });
+                
+                // Sign out button
+                document.getElementById('editorSignOut').addEventListener('click', async () => {
+                    await config.supabase.auth.signOut();
+                    window.location.href = 'index.html';
+                });
+            }
+        } catch (error) {
+            console.log('User not authenticated or error loading user data');
+        }
+    }
+    
+    setupEditorUserDropdown();
+    
+    // Dark Theme Toggle (in user dropdown)
+    const editorThemeToggle = document.getElementById('editorThemeToggle');
+    const themeToggleText = document.getElementById('themeToggleText');
     const savedTheme = localStorage.getItem('theme') || 'light';
     
     // Apply saved theme on load
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-theme');
+        if (themeToggleText) themeToggleText.textContent = 'Light Mode';
     }
     
-    themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-theme');
-        const isDark = document.body.classList.contains('dark-theme');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    });
+    if (editorThemeToggle) {
+        editorThemeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            if (themeToggleText) {
+                themeToggleText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+            }
+        });
+    }
     
     // Dropdown menu actions
-    document.getElementById('actionNewProject').addEventListener('click', () => {
-        newProject();
+    document.getElementById('actionNewProject').addEventListener('click', async () => {
         mainDropdown.classList.remove('active');
         closeAllSubmenus();
-        // Close onboarding if it's open
-        if (typeof window.closeOnboarding === 'function') {
-            window.closeOnboarding();
+        
+        // Check if user is authenticated
+        try {
+            const config = await import('../auth/config.js');
+            const { data: { session } } = await config.supabase.auth.getSession();
+            
+            if (session) {
+                // Open new project modal for authenticated users
+                if (typeof window.openNewProjectModal === 'function') {
+                    window.openNewProjectModal();
+                }
+            } else {
+                // For non-authenticated users, use the old behavior (clear local)
+                if (confirm('Create a new empty project? Current data will be cleared.')) {
+                    newProject();
+                    // Close onboarding if it's open
+                    if (typeof window.closeOnboarding === 'function') {
+                        window.closeOnboarding();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking auth:', error);
+            // Fallback to old behavior
+            newProject();
+            if (typeof window.closeOnboarding === 'function') {
+                window.closeOnboarding();
+            }
         }
     });
     
@@ -395,18 +489,18 @@ function initializeEventListeners() {
             e.preventDefault();
             
             if (selectedNodeId !== null) {
-                if (confirm('Supprimer cet article ?')) {
+                if (confirm('Delete this article?')) {
                     deleteArticleById(selectedNodeId);
                     selectedNodeId = null;
                     hideRadialMenu();
                 }
             } else if (selectedEdgeId !== null) {
-                if (confirm('Supprimer cette connexion ?')) {
+                if (confirm('Delete this connection?')) {
                     deleteConnection(selectedEdgeId);
                     hideEdgeMenu();
                 }
             } else if (selectedZoneIndex !== -1) {
-                if (confirm('Supprimer cette zone/tag ?')) {
+                if (confirm('Delete this zone/tag?')) {
                     deleteZone(selectedZoneIndex);
                 }
             }

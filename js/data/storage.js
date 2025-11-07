@@ -26,6 +26,17 @@ function saveToLocalStorage(silent = false) {
         localStorage.setItem('papermap_edge_control_points', JSON.stringify(edgeControlPoints));
         localStorage.setItem('papermap_next_control_point_id', nextControlPointId.toString());
         console.log('Data saved to localStorage');
+        
+        // Also save to cloud if enabled (async, non-blocking)
+        if (typeof window.isCloudStorageEnabled === 'function' && window.isCloudStorageEnabled()) {
+            // Dynamically import and call cloud save
+            import('./cloud-storage.js').then(module => {
+                module.saveToCloud(true); // Silent cloud save
+            }).catch(err => {
+                console.warn('Cloud save skipped:', err.message);
+            });
+        }
+        
         if (!silent) {
             // showNotification('Projet sauvegardé!', 'success');
         }

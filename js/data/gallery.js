@@ -11,14 +11,8 @@ export async function loadGalleryProjects() {
     const galleryEmpty = document.getElementById('galleryEmpty');
     
     try {
-        // Fetch the gallery index
-        const response = await fetch('projects/index.json');
-        
-        if (!response.ok) {
-            throw new Error('Failed to load gallery index');
-        }
-        
-        const projects = await response.json();
+        // Scan projects folder for all subdirectories
+        const projects = await scanProjectsFolder();
         
         // Clear loading state
         galleryGrid.innerHTML = '';
@@ -43,6 +37,94 @@ export async function loadGalleryProjects() {
         galleryEmpty.querySelector('h3').textContent = 'Failed to load gallery';
         galleryEmpty.querySelector('p').textContent = 'Please try again later.';
     }
+}
+
+/**
+ * Scan the projects folder for all project directories
+ * Each project folder should contain a metadata.json file
+ */
+async function scanProjectsFolder() {
+    const projects = [];
+    
+    // Try multiple methods to discover projects
+    
+    // Method 1: Try GitHub API first (works from anywhere)
+    try {
+        const githubResponse = await fetch(
+            'https://api.github.com/repos/remyvallot/beta.papergraph/contents/projects',
+            {
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (githubResponse.ok) {
+            const contents = await githubResponse.json();
+            const folders = contents.filter(item => 
+                item.type === 'dir' && 
+                !item.name.startsWith('.') && 
+                item.name !== 'README.md'
+            );
+            
+            console.log(`Found ${folders.length} projects via GitHub API`);
+            
+            // Load metadata for each folder in parallel
+            const metadataPromises = folders.map(async (folder) => {
+                try {
+                    const metadataResponse = await fetch(`projects/${folder.name}/metadata.json`);
+                    if (metadataResponse.ok) {
+                        return await metadataResponse.json();
+                    }
+                } catch (err) {
+                    console.warn(`Failed to load metadata for ${folder.name}:`, err);
+                }
+                return null;
+            });
+            
+            const results = await Promise.all(metadataPromises);
+            projects.push(...results.filter(p => p !== null));
+            
+            if (projects.length > 0) {
+                console.log(`Successfully loaded ${projects.length} projects`);
+                // Sort and return
+                projects.sort((a, b) => {
+                    const dateA = new Date(a.submittedAt || 0);
+                    const dateB = new Date(b.submittedAt || 0);
+                    return dateB - dateA;
+                });
+                return projects;
+            }
+        }
+    } catch (error) {
+        console.warn('GitHub API failed:', error);
+    }
+    
+    // Method 2: Try known project folders (for localhost/development)
+    console.log('Trying to load known projects...');
+    const knownFolders = ['remyvallot_2025-11-08'];
+    
+    for (const folderName of knownFolders) {
+        try {
+            const metadataResponse = await fetch(`projects/${folderName}/metadata.json`);
+            if (metadataResponse.ok) {
+                const metadata = await metadataResponse.json();
+                projects.push(metadata);
+                console.log(`Loaded project: ${metadata.title}`);
+            }
+        } catch (err) {
+            console.warn(`Failed to load ${folderName}:`, err);
+        }
+    }
+    
+    // Sort by submission date (newest first)
+    projects.sort((a, b) => {
+        const dateA = new Date(a.submittedAt || 0);
+        const dateB = new Date(b.submittedAt || 0);
+        return dateB - dateA;
+    });
+    
+    return projects;
 }
 
 /**
@@ -136,7 +218,7 @@ export async function openGalleryProject(project) {
         
         const projectData = await response.json();
         
-        // Store project data in sessionStorage for the editor
+        // Store project data in sessionStorage for the viewer
         sessionStorage.setItem('galleryProject', JSON.stringify({
             data: projectData,
             metadata: {
@@ -148,8 +230,8 @@ export async function openGalleryProject(project) {
             }
         }));
         
-        // Navigate to editor in read-only mode
-        window.location.href = 'editor.html?mode=readonly';
+        // Navigate to viewer (read-only mode)
+        window.location.href = 'viewer.html';
         
     } catch (error) {
         console.error('Error opening project:', error);
